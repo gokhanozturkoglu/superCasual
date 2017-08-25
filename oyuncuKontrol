@@ -1,0 +1,81 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PlayerController : MonoBehaviour
+{
+    public float HorizontalSpeed;
+    public float JumpForce;
+
+    public Action OnCharacterDeath;
+    public Action<float> OnCharacterXPosChanged;
+
+    private Rigidbody2D _rigidbody2D;
+    private Animator _animator;
+    private bool _isOnGround;
+
+    private void Awake()
+    {
+        _animator = GetComponent<Animator>();
+        _rigidbody2D = GetComponent<Rigidbody2D>();
+    }
+
+    void Start()
+    {
+
+    }
+
+    void Update()
+    {
+        MoveHorizontally();
+        CheckJump();
+
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Ground"
+            && _isOnGround == false)
+        {
+            _isOnGround = true;
+            _animator.SetBool("OnAir", false);
+        }
+
+        CheckDeath(collision);
+    }
+
+    private void MoveHorizontally()
+    {
+        _rigidbody2D.velocity = new Vector2(HorizontalSpeed * Time.deltaTime,
+                                    _rigidbody2D.velocity.y);
+
+        if(OnCharacterXPosChanged != null)
+        {
+            OnCharacterXPosChanged(transform.position.x);
+        }
+    }
+
+    private void CheckJump()
+    {
+        if (Input.GetMouseButtonDown(0) == true
+            && _isOnGround)
+        {
+            _rigidbody2D.AddForce(new Vector2(0f, JumpForce),
+                                  ForceMode2D.Impulse);
+            _isOnGround = false;
+            _animator.SetBool("OnAir", true);
+        }
+    }
+
+    private void CheckDeath(Collision2D collision)
+    {
+        if(collision.gameObject.tag == "Death")
+        {
+            if(OnCharacterDeath != null)
+            {
+                OnCharacterDeath();
+            }
+        }
+    }
+}
