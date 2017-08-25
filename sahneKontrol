@@ -1,0 +1,47 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class GameManager : MonoBehaviour
+{
+    public PlayerController Player;
+    public Text ScoreText;
+    public AudioSource AudioSource;
+    public AudioClip DeathSFX;
+
+    private void Start()
+    {
+        Time.timeScale = 1f;
+    }
+
+    private void OnEnable()
+    {
+        Player.OnCharacterXPosChanged += Player_OnCharacterXPosChanged;
+        Player.OnCharacterDeath += Player_OnCharacterDeath;
+    }
+
+    private void OnDisable()
+    {
+        Player.OnCharacterXPosChanged -= Player_OnCharacterXPosChanged;
+        Player.OnCharacterDeath -= Player_OnCharacterDeath;
+    }
+
+    void Player_OnCharacterDeath()
+    {
+        AudioSource.PlayOneShot(DeathSFX);
+        StartCoroutine(LoadSceneCoroutine());
+    }
+
+    private IEnumerator LoadSceneCoroutine()
+    {
+        Time.timeScale = 0f;
+        yield return new WaitForSecondsRealtime(2f);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+    }
+
+    void Player_OnCharacterXPosChanged(float xPos)
+    {
+        ScoreText.text = "SCORE: " + (int)xPos;
+    }
+}
